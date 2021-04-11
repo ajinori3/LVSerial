@@ -40,7 +40,7 @@ bool LVSerial::transmitReceiveToRAM(RegName reg, uint8_t* write_data, uint8_t* r
 	uint8_t data_address = getRegisterSpecification(reg).address;
 		
 	serial_.write(0x80 + servo_id_);
-	serial_.write(0x20 + data_size);
+	serial_.write(is_write ? 0x40 + 0x20 + data_size : 0x20 + data_size);
 	serial_.write(data_address);
 	
 	serial_.write(write_data, data_size);
