@@ -25,7 +25,7 @@ bool  LVSerial::readRAM(RegName reg, uint8_t* read_buff, size_t buff_size)
 bool LVSerial::writeRAM(RegName reg, uint8_t* write_buff, size_t buff_size) {
 	size_t reg_size = getRegisterSpecification(reg).size;	
 	bool is_writable = getRegisterSpecification(reg).is_writeable;
-	uint8_t dummy_read_buff[buff_size];     //not used
+	uint8_t dummy_read_buff[buff_size];
 		
 	if(reg_size > buff_size || !is_writable)
 	{
