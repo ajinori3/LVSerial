@@ -71,9 +71,24 @@ public:
 		BST_RA7
 	};
 	
-	LVSerial(int servo_id, SoftwareSerial serial);
-	bool readRAM(RegName reg, uint8_t* read_buff, size_t buff_size);
+	explicit LVSerial(SoftwareSerial serial);
+	LVSerial(SoftwareSerial serial, long baud);
+	
+	bool readRAM(const RegName reg, uint8_t* read_buff, const size_t buff_size);
 	bool writeRAM(RegName reg, uint8_t* write_buff, size_t buff_size);
+	
+	bool init();
+	bool init(uint8_t servo_id);
+	
+	bool isConnected();
+	bool releaseWriteProtection(const bool is_enable);
+	bool enableServoPower(const bool is_enable);
+	bool writeTargetPos(const uint16_t raw_pos);
+	float readPowerVoltage();
+	float readBackEMF();
+	uint16_t readNowPos();
+	uint16_t readNowSpeed();
+	
 	
 private:
 	SoftwareSerial serial_;
@@ -88,7 +103,7 @@ private:
 	
 	RegElement_t getRegisterSpecification(RegName reg);
 	
-	bool transmitReceiveToRAM(RegName reg, uint8_t* write_data, uint8_t* read_data, bool is_write);
+	bool transmitReceiveToRAM(const RegName reg, const uint8_t* write_data, uint8_t* read_data, const bool is_write);
 };
 
 #endif // !LVSERIAL_H_

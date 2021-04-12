@@ -1,14 +1,21 @@
 #include "LVSerial.h"
 
-LVSerial::LVSerial(int servo_id, SoftwareSerial serial)
-	: servo_id_(servo_id)
-	, serial_(serial)
+LVSerial::LVSerial(SoftwareSerial serial)
+	: serial_(serial)
+	, servo_id_(0)
 {
 	serial_.begin(115200);
 }
 
+LVSerial::LVSerial(SoftwareSerial serial, long baud)
+	: serial_(serial)
+	, servo_id_(0)
+{
+	serial_.begin(baud);
+}
 
-bool  LVSerial::readRAM(RegName reg, uint8_t* read_buff, size_t buff_size)
+
+bool  LVSerial::readRAM(const RegName reg, uint8_t* read_buff, const size_t buff_size)
 {
 	//LVSerial protocol need write some data even if only need to read data
 	size_t reg_size = getRegisterSpecification(reg).size;
@@ -27,7 +34,7 @@ bool LVSerial::writeRAM(RegName reg, uint8_t* write_buff, size_t buff_size) {
 	bool is_writable = getRegisterSpecification(reg).is_writeable;
 	uint8_t dummy_read_buff[buff_size];
 		
-	if(reg_size > buff_size || !is_writable)
+	if (reg_size > buff_size || !is_writable)
 	{
 		return false;
 	}
@@ -35,7 +42,78 @@ bool LVSerial::writeRAM(RegName reg, uint8_t* write_buff, size_t buff_size) {
 	return transmitReceiveToRAM(reg, write_buff, dummy_read_buff, true);
 }
 
-bool LVSerial::transmitReceiveToRAM(RegName reg, uint8_t* write_data, uint8_t* read_data, bool is_write) {
+bool  LVSerial::init() {
+	if (!isConnected())
+	{
+		return false;
+	}
+	
+//	if (!releaseWriteProtection(true))
+//	{
+//		return false;
+//	}
+	
+	return true;
+}
+bool LVSerial::init(uint8_t servo_id)
+{
+	this->servo_id_ = servo_id;
+	return init();
+}
+
+bool LVSerial::isConnected()
+{
+	uint16_t sys_pn_val = 0; 
+	if (!readRAM(LVSerial::RegName::SYS_PN, reinterpret_cast<uint8_t*>(&sys_pn_val), sizeof(sys_pn_val))) {
+		return false;
+	}
+	return sys_pn_val != 0x0000;
+}
+
+bool LVSerial::releaseWriteProtection(const bool is_enable)
+{
+	const uint8_t unlock_key = 0x55;
+	uint8_t write_val;
+	
+	is_enable ? write_val = unlock_key : write_val = 0x00;
+	return writeRAM(LVSerial::RegName::SYS_ULK, &write_val, sizeof(write_val));
+}
+
+bool LVSerial::enableServoPower(const bool is_enable)
+{
+	uint8_t write_val;
+	is_enable ? write_val = 0x01 : write_val = 0x00;
+	
+	return writeRAM(LVSerial::RegName::PWM_EN, &write_val, sizeof(write_val));
+}
+
+bool LVSerial::writeTargetPos(const uint16_t raw_pos)
+{ 
+	uint16_t target_pos_val = raw_pos;
+	return writeRAM(LVSerial::RegName::FB_TPOS, reinterpret_cast<uint8_t*>(&target_pos_val), sizeof(target_pos_val));
+}
+
+float LVSerial::readPowerVoltage()
+{
+	uint16_t read_buff;
+	if (!readRAM(LVSerial::RegName::M_VI, reinterpret_cast<uint8_t*>(&read_buff), sizeof(read_buff))) 
+	{
+		return 0.0f;
+	}
+	return 27.5f * (float)read_buff / 4096.0f;
+}
+
+uint16_t LVSerial::readNowPos() {
+	uint16_t read_buff;
+	if (!readRAM(LVSerial::RegName::M_POS, reinterpret_cast<uint8_t*>(&read_buff), sizeof(read_buff)))
+	{
+		return 0;
+	}
+	return read_buff;
+}
+
+
+bool LVSerial::transmitReceiveToRAM(const RegName reg, const uint8_t* write_data, uint8_t* read_data, const bool is_write) {
 	size_t data_size = getRegisterSpecification(reg).size;
 	uint8_t data_address = getRegisterSpecification(reg).address;
 		
