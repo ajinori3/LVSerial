@@ -1,17 +1,30 @@
 #include "LVSerial.h"
 
-LVSerial::LVSerial(SoftwareSerial serial)
-	: serial_(serial)
-	, servo_id_(0)
+const bool enableDebugPrint = true;
+
+void LVSerial::serialDebug()
 {
-	serial_.begin(115200);
+	int i = 0; 
+	while (true)
+	{
+		serial_->println(i);
+		i++;
+		delay(1);
+	}
 }
 
-LVSerial::LVSerial(SoftwareSerial serial, long baud)
-	: serial_(serial)
+LVSerial::LVSerial(HardwareSerial &serial)
+	: serial_(&serial)
 	, servo_id_(0)
 {
-	serial_.begin(baud);
+	serial_->begin(115200);
+}
+
+LVSerial::LVSerial(HardwareSerial &serial, long baud)
+	: serial_(&serial)
+	, servo_id_(0)
+{
+	serial_->begin(baud);
 }
 
 
@@ -20,6 +33,8 @@ bool  LVSerial::readRAM(const RegName reg, uint8_t* read_buff, const size_t buff
 	//LVSerial protocol need write some data even if only need to read data
 	size_t reg_size = getRegisterSpecification(reg).size;
 	uint8_t write_dummy[buff_size];
+	
+	//printInfo(buff_size);
 		
 	if (reg_size > buff_size)
 	{
@@ -42,16 +57,16 @@ bool LVSerial::writeRAM(RegName reg, uint8_t* write_buff, size_t buff_size) {
 	return transmitReceiveToRAM(reg, write_buff, dummy_read_buff, true);
 }
 
-bool  LVSerial::init() {
+bool  LVSerial::init() {	
 	if (!isConnected())
 	{
 		return false;
 	}
 	
-//	if (!releaseWriteProtection(true))
-//	{
-//		return false;
-//	}
+	if (!releaseWriteProtection(true))
+	{
+		return false;
+	}
 	
 	return true;
 }
@@ -63,7 +78,7 @@ bool LVSerial::init(uint8_t servo_id)
 
 bool LVSerial::isConnected()
 {
-	uint16_t sys_pn_val = 0; 
+	uint16_t sys_pn_val = 0;
 	if (!readRAM(LVSerial::RegName::SYS_PN, reinterpret_cast<uint8_t*>(&sys_pn_val), sizeof(sys_pn_val))) {
 		return false;
 	}
@@ -117,14 +132,14 @@ bool LVSerial::transmitReceiveToRAM(const RegName reg, const uint8_t* write_data
 	size_t data_size = getRegisterSpecification(reg).size;
 	uint8_t data_address = getRegisterSpecification(reg).address;
 		
-	serial_.write(0x80 + servo_id_);
-	serial_.write(is_write ? 0x40 + 0x20 + data_size : 0x20 + data_size);
-	serial_.write(data_address);
+	serial_->write(0x80 + servo_id_);
+	serial_->write(is_write ? 0x40 + 0x20 + data_size : 0x20 + data_size);
+	serial_->write(data_address);
 	
-	serial_.write(write_data, data_size);
-	serial_.flush();
+	serial_->write(write_data, data_size);
+	serial_->flush();
 	
-	return serial_.readBytes(read_data, data_size) == data_size;
+	return serial_->readBytes(read_data, data_size) == data_size;
 }
 
 LVSerial::RegElement_t LVSerial::getRegisterSpecification(RegName reg)

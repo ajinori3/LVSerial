@@ -1,7 +1,7 @@
 #ifndef LVSERIAL_H_
 #define LVSERIAL_H_
 
-#include "SoftwareSerial.h"
+#include "Arduino.h"
 
 class LVSerial
 {
@@ -71,8 +71,8 @@ public:
 		BST_RA7
 	};
 	
-	explicit LVSerial(SoftwareSerial serial);
-	LVSerial(SoftwareSerial serial, long baud);
+	explicit LVSerial(HardwareSerial &serial);
+	LVSerial(HardwareSerial &serial, long baud);
 	
 	bool readRAM(const RegName reg, uint8_t* read_buff, const size_t buff_size);
 	bool writeRAM(RegName reg, uint8_t* write_buff, size_t buff_size);
@@ -91,7 +91,7 @@ public:
 	
 	
 private:
-	SoftwareSerial serial_;
+	HardwareSerial *serial_;
 	uint8_t servo_id_;
 	
 	typedef struct RegElement_t
@@ -102,6 +102,8 @@ private:
 	} RegElement_t;
 	
 	RegElement_t getRegisterSpecification(RegName reg);
+	
+	void serialDebug();
 	
 	bool transmitReceiveToRAM(const RegName reg, const uint8_t* write_data, uint8_t* read_data, const bool is_write);
 };
