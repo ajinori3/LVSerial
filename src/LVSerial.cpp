@@ -18,6 +18,7 @@ LVSerial::LVSerial(HardwareSerial &serial)
 	, servo_id_(0)
 {
 	serial_->begin(115200);
+	serial_->setTimeout(10);
 }
 
 LVSerial::LVSerial(HardwareSerial &serial, long baud)
@@ -25,6 +26,7 @@ LVSerial::LVSerial(HardwareSerial &serial, long baud)
 	, servo_id_(0)
 {
 	serial_->begin(baud);
+	serial_->setTimeout(10);
 }
 
 
