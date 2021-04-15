@@ -1,0 +1,14 @@
+LVSerial KEYWORD1
+readRAM KEYWORD2
+writeRAM KEYWORD2
+init KEYWORD2
+isConnected KEYWORD2
+releaseWriteProtection KEYWORD2
+doEnableServoPower KEYWORD2
+writeTargetPos KEYWORD2
+readPowerVoltage KEYWORD2
+readNowPos KEYWORD2
+readBackEMF KEYWORD2
+readNowSpeed KEYWORD2
+getRegisterSpecification KEYWORD2
+transmitReceiveToRAM KEYWORD2
