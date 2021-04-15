@@ -6,6 +6,13 @@
 class LVSerial
 {
 public:
+	enum class ErrorStatus
+	{
+		OK,
+		TIMED_OUT,
+		INVALID_COMMAND,
+		DATA_DAMAGED
+	};
 	enum class RegName
 	{
 		SYS_PN,
@@ -71,23 +78,23 @@ public:
 		BST_RA7
 	};
 	
-	explicit LVSerial(HardwareSerial &serial);
-	LVSerial(HardwareSerial &serial, long baud);
+	explicit LVSerial(HardwareSerial &);
+	LVSerial(HardwareSerial &, const long);
 	
-	bool readRAM(const RegName reg, uint8_t* read_buff, const size_t buff_size);
-	bool writeRAM(RegName reg, uint8_t* write_buff, size_t buff_size);
+	ErrorStatus readRAM(const RegName reg, uint8_t* const read_buff, const size_t buff_size);
+	ErrorStatus writeRAM(RegName reg, uint8_t* write_buff, size_t buff_size);
 	
-	bool init();
-	bool init(uint8_t servo_id);
+	ErrorStatus init();
+	ErrorStatus init(const uint8_t servo_id);
 	
-	bool isConnected();
-	bool releaseWriteProtection(const bool is_enable);
-	bool enableServoPower(const bool is_enable);
-	bool writeTargetPos(const uint16_t raw_pos);
-	float readPowerVoltage();
-	float readBackEMF();
-	uint16_t readNowPos();
-	uint16_t readNowSpeed();
+	ErrorStatus isConnected();
+	ErrorStatus releaseWriteProtection(const bool do_enable);
+	ErrorStatus doEnableServoPower(const bool);
+	ErrorStatus writeTargetPos(const uint16_t raw_pos);
+	ErrorStatus readPowerVoltage(float* const voltage_f);
+	ErrorStatus readNowPos(uint16_t* const raw_pos);
+	ErrorStatus readBackEMF(const float*);
+	ErrorStatus readNowSpeed(const uint16_t*);
 	
 	
 private:
@@ -101,11 +108,8 @@ private:
 		bool is_writeable;
 	} RegElement_t;
 	
-	RegElement_t getRegisterSpecification(RegName reg);
-	
-	void serialDebug();
-	
-	bool transmitReceiveToRAM(const RegName reg, const uint8_t* write_data, uint8_t* read_data, const bool is_write);
+	RegElement_t getRegisterSpecification(const RegName);		
+	ErrorStatus transmitReceiveToRAM(const RegName reg, uint8_t* const write_data, uint8_t* const read_data, const bool is_write);
 };
 
 #endif // !LVSERIAL_H_

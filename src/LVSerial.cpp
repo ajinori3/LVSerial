@@ -1,17 +1,6 @@
 #include "LVSerial.h"
 
-const bool enableDebugPrint = true;
-
-void LVSerial::serialDebug()
-{
-	int i = 0; 
-	while (true)
-	{
-		serial_->println(i);
-		i++;
-		delay(1);
-	}
-}
+using ErrorStatus =  LVSerial::ErrorStatus;
 
 LVSerial::LVSerial(HardwareSerial &serial)
 	: serial_(&serial)
@@ -30,73 +19,79 @@ LVSerial::LVSerial(HardwareSerial &serial, long baud)
 }
 
 
-bool  LVSerial::readRAM(const RegName reg, uint8_t* read_buff, const size_t buff_size)
+ErrorStatus LVSerial::readRAM(const RegName reg, uint8_t* const read_buff, size_t buff_size)
 {
 	//LVSerial protocol need write some data even if only need to read data
 	size_t reg_size = getRegisterSpecification(reg).size;
 	uint8_t write_dummy[buff_size];
-	
-	//printInfo(buff_size);
 		
 	if (reg_size > buff_size)
 	{
-		return false;
+		return ErrorStatus::INVALID_COMMAND;
 	}		
 		
 	return transmitReceiveToRAM(reg, write_dummy, read_buff, false);
 }
 
-bool LVSerial::writeRAM(RegName reg, uint8_t* write_buff, size_t buff_size) {
+ErrorStatus LVSerial::writeRAM(RegName reg, uint8_t* const write_buff, size_t buff_size) {
 	size_t reg_size = getRegisterSpecification(reg).size;	
 	bool is_writable = getRegisterSpecification(reg).is_writeable;
 	uint8_t dummy_read_buff[buff_size];
 		
 	if (reg_size > buff_size || !is_writable)
 	{
-		return false;
+		return ErrorStatus::INVALID_COMMAND;
 	}
 		
 	return transmitReceiveToRAM(reg, write_buff, dummy_read_buff, true);
 }
 
-bool  LVSerial::init() {	
-	if (!isConnected())
+ErrorStatus  LVSerial::init() {	
+	ErrorStatus status;
+	if ((status = isConnected()) != ErrorStatus::OK)
 	{
-		return false;
+		return status;
 	}
 	
-	if (!releaseWriteProtection(true))
+	if (((status = releaseWriteProtection(true)) != ErrorStatus::OK))
 	{
-		return false;
+		return status;
 	}
 	
-	return true;
+	return ErrorStatus::OK;
 }
-bool LVSerial::init(uint8_t servo_id)
+ErrorStatus LVSerial::init(const uint8_t servo_id)
 {
 	this->servo_id_ = servo_id;
 	return init();
 }
 
-bool LVSerial::isConnected()
+ErrorStatus LVSerial::isConnected()
 {
+	ErrorStatus status;
 	uint16_t sys_pn_val = 0;
-	if (!readRAM(LVSerial::RegName::SYS_PN, reinterpret_cast<uint8_t*>(&sys_pn_val), sizeof(sys_pn_val))) {
-		return false;
+	if ((status = readRAM(LVSerial::RegName::SYS_PN, reinterpret_cast<uint8_t*>(&sys_pn_val), sizeof(sys_pn_val))) != ErrorStatus::OK) 
+	{
+		return status;
 	}
-	return sys_pn_val != 0x0000;
+	if (sys_pn_val == 0x0000)
+	{
+		return ErrorStatus::DATA_DAMAGED;
+	}
+	
+	return ErrorStatus::OK;
 }
 
-bool LVSerial::releaseWriteProtection(const bool is_enable)
+ErrorStatus LVSerial::releaseWriteProtection(const bool do_enable)
 {
-	const uint8_t unlock_key = 0x55;
+	constexpr uint8_t unlock_key = 0x55;
 	uint8_t write_val;
 	
-	is_enable ? write_val = unlock_key : write_val = 0x00;
+	do_enable ? write_val = unlock_key : write_val = 0x00;
 	return writeRAM(LVSerial::RegName::SYS_ULK, &write_val, sizeof(write_val));
 }
 
-bool LVSerial::enableServoPower(const bool is_enable)
+ErrorStatus LVSerial::doEnableServoPower(const bool is_enable)
 {
 	uint8_t write_val;
 	is_enable ? write_val = 0x01 : write_val = 0x00;
@@ -104,36 +99,47 @@ bool LVSerial::enableServoPower(const bool is_enable)
 	return writeRAM(LVSerial::RegName::PWM_EN, &write_val, sizeof(write_val));
 }
 
-bool LVSerial::writeTargetPos(const uint16_t raw_pos)
-{ 
+ErrorStatus LVSerial::writeTargetPos(const uint16_t raw_pos)
+{
 	uint16_t target_pos_val = raw_pos;
 	return writeRAM(LVSerial::RegName::FB_TPOS, reinterpret_cast<uint8_t*>(&target_pos_val), sizeof(target_pos_val));
 }
 
-float LVSerial::readPowerVoltage()
+ErrorStatus LVSerial::readPowerVoltage(float* const voltage_f)
 {
+	ErrorStatus status;
 	uint16_t read_buff;
-	if (!readRAM(LVSerial::RegName::M_VI, reinterpret_cast<uint8_t*>(&read_buff), sizeof(read_buff))) 
+	
+	if ((status = readRAM(LVSerial::RegName::M_VI, reinterpret_cast<uint8_t*>(&read_buff), sizeof(read_buff))) != ErrorStatus::OK) 
 	{
-		return 0.0f;
+		return status;
 	}
-	return 27.5f * (float)read_buff / 4096.0f;
+	
+	
+	*voltage_f = 27.5f * (float)read_buff / 4096.0f;
+	
+	return ErrorStatus::OK;
 }
 
-uint16_t LVSerial::readNowPos() {
+ErrorStatus LVSerial::readNowPos(uint16_t* const raw_pos) {
+	ErrorStatus status;
 	uint16_t read_buff;
-	if (!readRAM(LVSerial::RegName::M_POS, reinterpret_cast<uint8_t*>(&read_buff), sizeof(read_buff)))
+	
+	if ((status = readRAM(LVSerial::RegName::M_POS, reinterpret_cast<uint8_t*>(&read_buff), sizeof(read_buff))) != ErrorStatus::OK) 
 	{
-		return 0;
+		return status;
 	}
-	return read_buff;
+	
+	*raw_pos = read_buff;
+	
+	return ErrorStatus::OK;
 }
 
 
-bool LVSerial::transmitReceiveToRAM(const RegName reg, const uint8_t* write_data, uint8_t* read_data, const bool is_write) {
+ErrorStatus LVSerial::transmitReceiveToRAM(const RegName reg, uint8_t* const write_data, uint8_t* const read_data, const bool is_write) {
 	size_t data_size = getRegisterSpecification(reg).size;
 	uint8_t data_address = getRegisterSpecification(reg).address;
-		
+	
 	serial_->write(0x80 + servo_id_);
 	serial_->write(is_write ? 0x40 + 0x20 + data_size : 0x20 + data_size);
 	serial_->write(data_address);
@@ -141,7 +147,15 @@ bool LVSerial::transmitReceiveToRAM(const RegName reg, const uint8_t* write_data
 	serial_->write(write_data, data_size);
 	serial_->flush();
 	
-	return serial_->readBytes(read_data, data_size) == data_size;
+	if (serial_->readBytes(read_data, data_size) == data_size)
+	{
+		return ErrorStatus::OK;
+	}
+	
+	else
+	{
+		return ErrorStatus::TIMED_OUT;
+	}	
 }
 
 LVSerial::RegElement_t LVSerial::getRegisterSpecification(RegName reg)
