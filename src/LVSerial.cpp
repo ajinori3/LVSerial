@@ -42,7 +42,6 @@ ErrorStatus LVSerial::writeRAM(RegName reg, uint8_t* const write_buff, const siz
 	{
 		return ErrorStatus::INVALID_COMMAND;
 	}
-		
 	return transmitReceiveToRAM(reg, write_buff, dummy_read_buff, true);
 }
 
