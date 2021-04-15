@@ -1,4 +1,4 @@
-#include "LVSerial.h"
+#include "LVSerial.hpp"
 
 using ErrorStatus =  LVSerial::ErrorStatus;
 
