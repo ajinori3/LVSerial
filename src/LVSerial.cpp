@@ -33,7 +33,7 @@ ErrorStatus LVSerial::readRAM(const RegName reg, uint8_t* const read_buff, size_
 	return transmitReceiveToRAM(reg, write_dummy, read_buff, false);
 }
 
-ErrorStatus LVSerial::writeRAM(RegName reg, uint8_t* const write_buff, size_t buff_size) {
+ErrorStatus LVSerial::writeRAM(RegName reg, uint8_t* const write_buff, const size_t buff_size) {
 	size_t reg_size = getRegisterSpecification(reg).size;	
 	bool is_writable = getRegisterSpecification(reg).is_writeable;
 	uint8_t dummy_read_buff[buff_size];
@@ -132,6 +132,34 @@ ErrorStatus LVSerial::readNowPos(uint16_t* const raw_pos) {
 	
 	*raw_pos = read_buff;
 	
+	return ErrorStatus::OK;
+}
+
+ErrorStatus LVSerial::readBackEMF(float* const voltage_f)
+{
+	ErrorStatus status;
+	uint16_t read_buff;
+	
+	if ((status = readRAM(LVSerial::RegName::M_VE, reinterpret_cast<uint8_t*>(&read_buff), sizeof(read_buff))) != ErrorStatus::OK) 
+	{
+		return status;
+	}
+	
+	*voltage_f = 27.5f * (float)read_buff / 4096.f;
+	return ErrorStatus::OK;
+}
+
+ErrorStatus LVSerial::readNowSpeed(uint16_t* const raw_pos_speed)
+{
+	ErrorStatus status;
+	uint16_t read_buff;
+	
+	if ((status = readRAM(LVSerial::RegName::M_SPD, reinterpret_cast<uint8_t*>(&read_buff), sizeof(read_buff))) != ErrorStatus::OK) 
+	{
+		return status;
+	}
+	
+	*raw_pos_speed = read_buff;	
 	return ErrorStatus::OK;
 }
 

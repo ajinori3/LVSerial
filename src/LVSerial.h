@@ -82,19 +82,19 @@ public:
 	LVSerial(HardwareSerial &, const long);
 	
 	ErrorStatus readRAM(const RegName reg, uint8_t* const read_buff, const size_t buff_size);
-	ErrorStatus writeRAM(RegName reg, uint8_t* write_buff, size_t buff_size);
+	ErrorStatus writeRAM(const RegName reg, uint8_t* const write_buff, const size_t buff_size);
 	
 	ErrorStatus init();
 	ErrorStatus init(const uint8_t servo_id);
 	
 	ErrorStatus isConnected();
 	ErrorStatus releaseWriteProtection(const bool do_enable);
-	ErrorStatus doEnableServoPower(const bool);
+	ErrorStatus doEnableServoPower(const bool is_enable);
 	ErrorStatus writeTargetPos(const uint16_t raw_pos);
 	ErrorStatus readPowerVoltage(float* const voltage_f);
 	ErrorStatus readNowPos(uint16_t* const raw_pos);
-	ErrorStatus readBackEMF(const float*);
-	ErrorStatus readNowSpeed(const uint16_t*);
+	ErrorStatus readBackEMF(float* const voltage_f);
+	ErrorStatus readNowSpeed(uint16_t* const raw_pos_speed);
 	
 	
 private:
