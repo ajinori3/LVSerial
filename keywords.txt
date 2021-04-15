@@ -7,7 +7,6 @@
 #######################################
 
 LVSerial	KEYWORD1
-ErrorStatus	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -30,6 +29,10 @@ transmitReceiveToRAM	KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
+
+RegName LITERAL1
+ErrorStatus LITERAL1
+
 OK	LITERAL1
 TIMED_OUT	LITERAL1
 INVALID_COMMAND	LITERAL1
