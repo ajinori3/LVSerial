@@ -1,11 +1,18 @@
 #ifndef LVSERIAL_H_
 #define LVSERIAL_H_
 
-#include "SoftwareSerial.h"
+#include "Arduino.h"
 
 class LVSerial
 {
 public:
+	enum class ErrorStatus
+	{
+		OK,
+		TIMED_OUT,
+		INVALID_COMMAND,
+		DATA_DAMAGED
+	};
 	enum class RegName
 	{
 		SYS_PN,
@@ -71,27 +78,27 @@ public:
 		BST_RA7
 	};
 	
-	explicit LVSerial(SoftwareSerial serial);
-	LVSerial(SoftwareSerial serial, long baud);
+	explicit LVSerial(HardwareSerial &serial);
+	LVSerial(HardwareSerial &serial, const long baud);
 	
-	bool readRAM(const RegName reg, uint8_t* read_buff, const size_t buff_size);
-	bool writeRAM(RegName reg, uint8_t* write_buff, size_t buff_size);
+	ErrorStatus readRAM(const RegName reg, uint8_t* const read_buff, const size_t buff_size);
+	ErrorStatus writeRAM(const RegName reg, uint8_t* const write_buff, const size_t buff_size);
 	
-	bool init();
-	bool init(uint8_t servo_id);
+	ErrorStatus init();
+	ErrorStatus init(const uint8_t servo_id);
 	
-	bool isConnected();
-	bool releaseWriteProtection(const bool is_enable);
-	bool enableServoPower(const bool is_enable);
-	bool writeTargetPos(const uint16_t raw_pos);
-	float readPowerVoltage();
-	float readBackEMF();
-	uint16_t readNowPos();
-	uint16_t readNowSpeed();
+	ErrorStatus isConnected();
+	ErrorStatus releaseWriteProtection(const bool do_enable);
+	ErrorStatus doEnableServoPower(const bool is_enable);
+	ErrorStatus writeTargetPos(const uint16_t raw_pos);
+	ErrorStatus readPowerVoltage(float* const voltage_f);
+	ErrorStatus readNowPos(uint16_t* const raw_pos);
+	ErrorStatus readBackEMF(float* const voltage_f);
+	ErrorStatus readNowSpeed(uint16_t* const raw_pos_speed);
 	
 	
 private:
-	SoftwareSerial serial_;
+	HardwareSerial *serial_;
 	uint8_t servo_id_;
 	
 	typedef struct RegElement_t
@@ -101,9 +108,8 @@ private:
 		bool is_writeable;
 	} RegElement_t;
 	
-	RegElement_t getRegisterSpecification(RegName reg);
-	
-	bool transmitReceiveToRAM(const RegName reg, const uint8_t* write_data, uint8_t* read_data, const bool is_write);
+	RegElement_t getRegisterSpecification(const RegName);		
+	ErrorStatus transmitReceiveToRAM(const RegName reg, uint8_t* const write_data, uint8_t* const read_data, const bool is_write);
 };
 
 #endif // !LVSERIAL_H_
