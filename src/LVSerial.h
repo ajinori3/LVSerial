@@ -78,8 +78,8 @@ public:
 		BST_RA7
 	};
 	
-	explicit LVSerial(HardwareSerial &);
-	LVSerial(HardwareSerial &, const long);
+	explicit LVSerial(HardwareSerial &serial);
+	LVSerial(HardwareSerial &serial, const long baud);
 	
 	ErrorStatus readRAM(const RegName reg, uint8_t* const read_buff, const size_t buff_size);
 	ErrorStatus writeRAM(const RegName reg, uint8_t* const write_buff, const size_t buff_size);

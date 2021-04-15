@@ -10,7 +10,7 @@ LVSerial::LVSerial(HardwareSerial &serial)
 	serial_->setTimeout(10);
 }
 
-LVSerial::LVSerial(HardwareSerial &serial, long baud)
+LVSerial::LVSerial(HardwareSerial &serial, const long baud)
 	: serial_(&serial)
 	, servo_id_(0)
 {
