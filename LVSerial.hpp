@@ -109,7 +109,7 @@ private:
 	} RegElement_t;
 	
 	RegElement_t getRegisterSpecification(const RegName);		
-	ErrorStatus transmitReceiveToRAM(const RegName reg, uint8_t* const write_data, uint8_t* const read_data, const bool is_write);
+	ErrorStatus transmitReceiveToRAM(const RegName reg, uint8_t* const write_data, uint8_t* const read_data, const size_t buff_size, const bool is_write);
 };
 
 #endif // !LVSERIAL_H_
