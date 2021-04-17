@@ -30,7 +30,7 @@ ErrorStatus LVSerial::readRAM(const RegName reg, uint8_t* const read_buff, size_
 		return ErrorStatus::INVALID_COMMAND;
 	}		
 		
-	return transmitReceiveToRAM(reg, write_dummy, read_buff, false);
+	return transmitReceiveToRAM(reg, write_dummy, read_buff, buff_size, false);
 }
 
 ErrorStatus LVSerial::writeRAM(RegName reg, uint8_t* const write_buff, const size_t buff_size) {
@@ -42,7 +42,7 @@ ErrorStatus LVSerial::writeRAM(RegName reg, uint8_t* const write_buff, const siz
 	{
 		return ErrorStatus::INVALID_COMMAND;
 	}
-	return transmitReceiveToRAM(reg, write_buff, dummy_read_buff, true);
+	return transmitReceiveToRAM(reg, write_buff, dummy_read_buff, buff_size, true);
 }
 
 ErrorStatus  LVSerial::init() {	
@@ -163,22 +163,32 @@ ErrorStatus LVSerial::readNowSpeed(uint16_t* const raw_pos_speed)
 }
 
 
-ErrorStatus LVSerial::transmitReceiveToRAM(const RegName reg, uint8_t* const write_data, uint8_t* const read_data, const bool is_write) {
-	size_t data_size = getRegisterSpecification(reg).size;
+ErrorStatus LVSerial::transmitReceiveToRAM(const RegName reg, uint8_t* const write_data, uint8_t* const read_data, const size_t buff_size,const bool is_write) {
+	constexpr size_t MAX_REG_LEN = 4;
+	constexpr uint8_t DUMMY_DATA[MAX_REG_LEN] = {};
+	uint8_t read_buff[MAX_REG_LEN] = { };
+	
+	size_t data_size = getRegisterSpecification(reg).size;	
 	uint8_t data_address = getRegisterSpecification(reg).address;
 	
 	serial_->write(0x80 + servo_id_);
 	serial_->write(is_write ? 0x40 + 0x20 + data_size : 0x20 + data_size);
 	serial_->write(data_address);
 	
-	serial_->write(write_data, data_size);
+	serial_->write(is_write ? write_data : DUMMY_DATA, data_size);
 	serial_->flush();
 	
-	if (serial_->readBytes(read_data, data_size) == data_size)
+	if (serial_->readBytes(read_buff, data_size) == data_size)
 	{
+		uint32_t buff;
+		buff = read_buff[0];		
+		for (int i = 1; i < data_size; i++)
+		{
+			buff += (uint32_t)read_buff[i] << (7 * i);			
+		}		
+		memcpy(read_data, &buff, buff_size);		
 		return ErrorStatus::OK;
-	}
-	
+	}	
 	else
 	{
 		return ErrorStatus::TIMED_OUT;
