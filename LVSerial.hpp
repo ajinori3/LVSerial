@@ -89,14 +89,6 @@ public:
 	float readBackEMF();
 	uint16_t readNowSpeed();
 	
-	uint8_t read1byteData();
-	uint16_t read2byteData();
-	uint32_t read4byteData();
-	
-	void write1byteData(const uint8_t data);
-	void write2byteData(const uint16_t data);
-	void write4byteData(const uint32_t data);
-	
 	void write(const RegName reg, int data);
 	uint32_t read(const RegName reg);
 		
@@ -111,6 +103,14 @@ private:
 		int size;
 		bool is_writeable;
 	} RegElement_t;
+	
+	uint8_t read1byteData();
+	uint16_t read2byteData();
+	uint32_t read4byteData();
+	
+	void write1byteData(const uint8_t data);
+	void write2byteData(const uint16_t data);
+	void write4byteData(const uint32_t data);
 	
 	RegElement_t getRegisterSpecification(const RegName);		
 	};
