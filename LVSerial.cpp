@@ -94,7 +94,7 @@ uint16_t LVSerial::read2byteData() {
 	uint8_t read_buff[2] = { };
 	uint16_t read_value = 0;
 	
-	serial_->readBytes(reinterpret_cast<uint8_t*>(&read_buff), sizeof(read_buff));
+	serial_->readBytes(read_buff, sizeof(read_buff));
 	
 	read_value = 
 		read_buff[0] + 
@@ -106,7 +106,7 @@ uint32_t LVSerial::read4byteData() {
 	uint8_t read_buff[4] = {};
 	uint32_t read_value = 0;
 	
-	serial_->readBytes(reinterpret_cast<uint8_t*>(&read_buff), sizeof(read_buff));
+	serial_->readBytes(read_buff, sizeof(read_buff));
 	
 	read_value = 
 		read_buff[0] +
