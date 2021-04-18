@@ -18,13 +18,13 @@ LVSerial::LVSerial(HardwareSerial &serial, const long baud)
 	serial_->setTimeout(10);
 }
 
-bool  LVSerial::init() {	
+bool  LVSerial::begin() {	
 	return isConnected();
 }
-bool LVSerial::init(const uint8_t servo_id)
+bool LVSerial::begin(const uint8_t servo_id)
 {
 	this->servo_id_ = servo_id;
-	return init();
+	return begin();
 }
 
 bool LVSerial::isConnected()
