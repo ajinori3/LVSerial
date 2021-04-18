@@ -87,7 +87,7 @@ public:
 	float readPowerVoltage();
 	uint16_t readNowPos();
 	float readBackEMF();
-	uint16_t readNowSpeed();
+	int16_t readNowSpeed();
 	
 	void write(const RegName reg, int data);
 	uint32_t read(const RegName reg);

@@ -72,13 +72,21 @@ uint16_t LVSerial::readNowPos() {
 
 float LVSerial::readBackEMF()
 {
-	uint16_t read_buff = read(RegName::M_VE);		
+	int16_t read_buff = read(RegName::M_VE);	
+	if (read_buff > 0x2000) {
+		read_buff -= 0x4000;
+	}
+	
 	return 27.5f * (float)read_buff / 4096.f;
 }
 
-uint16_t LVSerial::readNowSpeed()
+int16_t LVSerial::readNowSpeed()
 {	
-	return read(RegName::M_SPD);
+	int16_t read_buff = read(RegName::M_SPD);
+	if (read_buff > 0x2000) {
+		read_buff -= 0x4000;
+	}
+	return read_buff;
 }
 
 
