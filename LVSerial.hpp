@@ -104,6 +104,10 @@ public:
 	void write2byteData(const uint16_t data);
 	void write4byteData(const uint32_t data);
 	
+	void write(const RegName reg, int data);
+	uint32_t read(const RegName reg);
+	
+	
 	
 private:
 	HardwareSerial *serial_;

@@ -203,7 +203,7 @@ uint8_t LVSerial::read1byteData() {
 	return read_buff;
 }
 uint16_t LVSerial::read2byteData() {
-	uint8_t read_buff[2] = {};
+	uint8_t read_buff[2] = { };
 	uint16_t read_value = 0;
 	
 	serial_->readBytes(reinterpret_cast<uint8_t*>(&read_buff), sizeof(read_buff));
@@ -215,7 +215,7 @@ uint16_t LVSerial::read2byteData() {
 	return read_value;
 }
 uint32_t LVSerial::read4byteData() {
-	uint8_t read_buff[4] = { };
+	uint8_t read_buff[4] = {};
 	uint32_t read_value = 0;
 	
 	serial_->readBytes(reinterpret_cast<uint8_t*>(&read_buff), sizeof(read_buff));
@@ -254,6 +254,63 @@ void LVSerial::write4byteData(const uint32_t data) {
 	};
 	
 	serial_->write(write_data, sizeof(write_data));
+}
+
+void LVSerial::write(const RegName reg, const int data)
+{
+	uint8_t header_data[] = {
+		0x80 | servo_id_,
+		0x40 | getRegisterSpecification(reg).size,
+		getRegisterSpecification(reg).address
+	};
+	
+	serial_->write(header_data, sizeof(header_data));
+	serial_->flush();
+	
+	switch (getRegisterSpecification(reg).size)
+	{
+	case 1:
+		write1byteData(data);
+		break;
+	case 2:
+		write2byteData(data);
+		break;
+	case 4:
+		write4byteData(data);
+		break;
+	}
+}
+
+uint32_t LVSerial::read(const RegName reg)
+{	
+	uint32_t read_value = 0;
+	constexpr uint32_t DUMMY_DATA = 0x00;
+	
+	uint8_t header_data[] = {
+		0x80 | servo_id_,
+		0x20 | getRegisterSpecification(reg).size,
+		getRegisterSpecification(reg).address
+	};
+	
+	serial_->write(header_data, sizeof(header_data));
+	serial_->flush();
+	
+	switch (getRegisterSpecification(reg).size)
+	{
+	case 1:
+		write1byteData(DUMMY_DATA);
+		read_value = read1byteData();
+		break;
+	case 2:
+		write2byteData(DUMMY_DATA);
+		read_value = read2byteData();
+		break;
+	case 4:
+		write4byteData(DUMMY_DATA);
+		read_value = read4byteData();
+		break;
+	}	
+	return read_value;
 }
 
 
