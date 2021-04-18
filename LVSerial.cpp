@@ -19,6 +19,7 @@ LVSerial::LVSerial(HardwareSerial &serial, const long baud)
 }
 
 bool  LVSerial::begin() {	
+	releaseWriteProtection();
 	return isConnected();
 }
 bool LVSerial::begin(const uint8_t servo_id)
