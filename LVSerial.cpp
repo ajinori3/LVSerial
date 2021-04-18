@@ -89,7 +89,7 @@ uint8_t LVSerial::read1byteData() {
 	
 	serial_->readBytes(&read_buff, sizeof(read_buff));
 	
-	return read_buff;
+	return (read_buff & 0x7f);
 }
 uint16_t LVSerial::read2byteData() {
 	uint8_t read_buff[2] = { };
@@ -98,8 +98,8 @@ uint16_t LVSerial::read2byteData() {
 	serial_->readBytes(read_buff, sizeof(read_buff));
 	
 	read_value = 
-		read_buff[0] + 
-		((uint32_t)read_buff[1] << 7);
+		(read_buff[0] & 0x7f) + 
+		(((uint32_t)read_buff[1] & 0x7f) << 7);
 	
 	return read_value;
 }
@@ -110,10 +110,10 @@ uint32_t LVSerial::read4byteData() {
 	serial_->readBytes(read_buff, sizeof(read_buff));
 	
 	read_value = 
-		read_buff[0] +
-		((uint32_t)read_buff[1] << 7) +
-		((uint32_t)read_buff[2] << 14) +
-		((uint32_t)read_buff[3] << 21);
+		(read_buff[0] & 0x7F) +
+		(((uint32_t)read_buff[1] & 0x7f) << 7) +
+		(((uint32_t)read_buff[2] & 0x7f) << 14) +
+		(((uint32_t)read_buff[3] & 0x7f) << 21);
 		
 	return read_value;
 }
@@ -153,9 +153,7 @@ void LVSerial::write(const RegName reg, const int data)
 		getRegisterSpecification(reg).address
 	};
 	
-	serial_->write(header_data, sizeof(header_data));
-	serial_->flush();
-	
+	serial_->write(header_data, sizeof(header_data));	
 	switch (getRegisterSpecification(reg).size)
 	{
 	case 1:
@@ -168,6 +166,8 @@ void LVSerial::write(const RegName reg, const int data)
 		write4byteData(data);
 		break;
 	}
+	
+	serial_->flush();
 }
 
 uint32_t LVSerial::read(const RegName reg)
