@@ -81,20 +81,20 @@ public:
 	explicit LVSerial(HardwareSerial &serial);
 	LVSerial(HardwareSerial &serial, const long baud);
 	
-	ErrorStatus readRAM(const RegName reg, uint8_t* const read_buff, const size_t buff_size);
-	ErrorStatus writeRAM(const RegName reg, uint8_t* const write_buff, const size_t buff_size);
+	bool init();
+	bool init(const uint8_t servo_id);
 	
-	ErrorStatus init();
-	ErrorStatus init(const uint8_t servo_id);
+	bool isConnected();
+	void releaseWriteProtection();
 	
-	ErrorStatus isConnected();
-	ErrorStatus releaseWriteProtection(const bool do_enable);
-	ErrorStatus doEnableServoPower(const bool is_enable);
-	ErrorStatus writeTargetPos(const uint16_t raw_pos);
-	ErrorStatus readPowerVoltage(float* const voltage_f);
-	ErrorStatus readNowPos(uint16_t* const raw_pos);
-	ErrorStatus readBackEMF(float* const voltage_f);
-	ErrorStatus readNowSpeed(uint16_t* const raw_pos_speed);
+	void powerOn();
+	void powerOff();
+	
+	void writeTargetPos(const uint16_t raw_pos);
+	float readPowerVoltage();
+	uint16_t readNowPos();
+	float readBackEMF();
+	uint16_t readNowSpeed();
 	
 	uint8_t read1byteData();
 	uint16_t read2byteData();
