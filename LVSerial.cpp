@@ -163,7 +163,7 @@ ErrorStatus LVSerial::readNowSpeed(uint16_t* const raw_pos_speed)
 }
 
 
-ErrorStatus LVSerial::transmitReceiveToRAM(const RegName reg, uint8_t* const write_data, uint8_t* const read_data, const size_t buff_size,const bool is_write) {
+ErrorStatus LVSerial::transmitReceiveToRAM(const RegName reg, uint8_t* const write_data, uint8_t* const read_data, const size_t buff_size, const bool is_write) {
 	constexpr size_t MAX_REG_LEN = 4;
 	constexpr uint8_t DUMMY_DATA[MAX_REG_LEN] = {};
 	uint8_t read_buff[MAX_REG_LEN] = { };
@@ -194,6 +194,68 @@ ErrorStatus LVSerial::transmitReceiveToRAM(const RegName reg, uint8_t* const wri
 		return ErrorStatus::TIMED_OUT;
 	}	
 }
+
+uint8_t LVSerial::read1byteData() {
+	uint8_t read_buff = 0;
+	
+	serial_->readBytes(&read_buff, sizeof(read_buff));
+	
+	return read_buff;
+}
+uint16_t LVSerial::read2byteData() {
+	uint8_t read_buff[2] = {};
+	uint16_t read_value = 0;
+	
+	serial_->readBytes(reinterpret_cast<uint8_t*>(&read_buff), sizeof(read_buff));
+	
+	read_value = 
+		read_buff[0] + 
+		((uint32_t)read_buff[1] << 7);
+	
+	return read_value;
+}
+uint32_t LVSerial::read4byteData() {
+	uint8_t read_buff[4] = { };
+	uint32_t read_value = 0;
+	
+	serial_->readBytes(reinterpret_cast<uint8_t*>(&read_buff), sizeof(read_buff));
+	
+	read_value = 
+		read_buff[0] +
+		((uint32_t)read_buff[1] << 7) +
+		((uint32_t)read_buff[2] << 14) +
+		((uint32_t)read_buff[3] << 21);
+		
+	return read_value;
+}
+
+	
+void LVSerial::write1byteData(const uint8_t data) {
+	uint8_t write_data = data & 0x7f;
+	serial_->write(write_data);
+}
+
+void LVSerial::write2byteData(const uint16_t data) {
+	uint8_t write_data[2] = 
+	{
+		(uint16_t)data & 0x7f,
+		((uint16_t)data >> 7) & 0x7f
+	};
+	
+	serial_->write(write_data, sizeof(write_data));
+}
+void LVSerial::write4byteData(const uint32_t data) {
+	uint8_t write_data[4] = 
+	{
+		(uint16_t)data & 0x7f,
+		((uint32_t)data >> 7) & 0x7f,
+		((uint32_t)data >> 14) & 0x7f,
+		((uint32_t)data >> 21) & 0x7f		
+	};
+	
+	serial_->write(write_data, sizeof(write_data));
+}
+
 
 LVSerial::RegElement_t LVSerial::getRegisterSpecification(RegName reg)
 {
