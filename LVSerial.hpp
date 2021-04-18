@@ -81,8 +81,8 @@ public:
 	explicit LVSerial(HardwareSerial &serial);
 	LVSerial(HardwareSerial &serial, const long baud);
 	
-	bool init();
-	bool init(const uint8_t servo_id);
+	bool begin();
+	bool begin(const uint8_t servo_id);
 	
 	bool isConnected();
 	void releaseWriteProtection();
