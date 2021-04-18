@@ -6,13 +6,6 @@
 class LVSerial
 {
 public:
-	enum class ErrorStatus
-	{
-		OK,
-		TIMED_OUT,
-		INVALID_COMMAND,
-		DATA_DAMAGED
-	};
 	enum class RegName
 	{
 		SYS_PN,
@@ -106,8 +99,7 @@ public:
 	
 	void write(const RegName reg, int data);
 	uint32_t read(const RegName reg);
-	
-	
+		
 	
 private:
 	HardwareSerial *serial_;
@@ -120,10 +112,7 @@ private:
 		bool is_writeable;
 	} RegElement_t;
 	
-	
-	
 	RegElement_t getRegisterSpecification(const RegName);		
-	ErrorStatus transmitReceiveToRAM(const RegName reg, uint8_t* const write_data, uint8_t* const read_data, const size_t buff_size, const bool is_write);
-};
+	};
 
 #endif // !LVSERIAL_H_

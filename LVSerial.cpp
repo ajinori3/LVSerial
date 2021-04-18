@@ -1,7 +1,5 @@
 #include "LVSerial.hpp"
 
-using ErrorStatus =  LVSerial::ErrorStatus;
-
 LVSerial::LVSerial(HardwareSerial &serial)
 	: serial_(&serial)
 	, servo_id_(0)
@@ -92,7 +90,7 @@ uint8_t LVSerial::read1byteData() {
 	return (read_buff & 0x7f);
 }
 uint16_t LVSerial::read2byteData() {
-	uint8_t read_buff[2] = { };
+	uint8_t read_buff[2] = {};
 	uint16_t read_value = 0;
 	
 	serial_->readBytes(read_buff, sizeof(read_buff));
@@ -104,7 +102,7 @@ uint16_t LVSerial::read2byteData() {
 	return read_value;
 }
 uint32_t LVSerial::read4byteData() {
-	uint8_t read_buff[4] = {};
+	uint8_t read_buff[4] = { };
 	uint32_t read_value = 0;
 	
 	serial_->readBytes(read_buff, sizeof(read_buff));
